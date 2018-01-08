@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta
+
+from django.contrib.auth.models import Group, User
 from django.template import RequestContext
+from django.test import Client
 from django.utils.encoding import force_text
-from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from cms.api import add_plugin
-from cms.plugin_rendering import render_placeholder
+from cms.plugin_rendering import ContentRenderer
 from djangocms_helper.base_test import BaseTestCase
 
 
@@ -16,15 +18,29 @@ class TestPlugin(BaseTestCase):
          'it': {'title': 'Titolo pagina', 'publish': False}},
     )
 
+    def setUp(self):
+        #create permissions group
+        self.group = Group(name="My Test Group")
+        self.group.save()
+        self.group2 = Group(name="My Test Group 2")
+        self.group2.save()
+        self.c = Client()
+        self.user = User.objects.create_user(username="test", email="test@test.com", password="test")
+        self.user.groups.add(self.group)
+        self.user.save()
+
+    def tearDown(self):
+        self.user.delete()
+        self.group.delete()
+
     def test_basic_context_setup(self):
         page1, = self.get_pages()
         ph = page1.placeholders.get(slot='content')
-        date_start = now()
 
         plugin_data = {
-            'date_publish': date_start
+            'permitted_group': self.group
         }
-        plugin = add_plugin(ph, 'TimerContainerPlugin', language='en', **plugin_data)
+        plugin = add_plugin(ph, 'ConditionalContainerPlugin', language='en', **plugin_data)
         instance, plugin_class = plugin.get_plugin_instance()
         request = self.get_page_request(page1, self.user, r'/en/', lang='en')
         context = RequestContext(request, {})
@@ -32,39 +48,12 @@ class TestPlugin(BaseTestCase):
         self.assertTrue('instance' in pl_context)
         self.assertEqual(pl_context['instance'], instance)
         self.assertEqual(force_text(instance),
-                         _(u'Start publish at %(start)s') %
-                         {'start': date_start})
+                         _(u'Access granted to %s') % self.group.name)
 
         plugin_data = {
-            'date_publish': date_start,
-            'date_publish_end': date_start + timedelta(seconds=10)
+            'permitted_group': self.group2
         }
-        plugin = add_plugin(ph, 'TimerContainerPlugin', language='en', **plugin_data)
-        instance, plugin_class = plugin.get_plugin_instance()
-        request = self.get_page_request(page1, self.user, r'/en/', lang='en')
-        context = RequestContext(request, {})
-        pl_context = plugin_class.render(context, instance, ph)
-        self.assertTrue('instance' in pl_context)
-        self.assertEqual(pl_context['instance'], instance)
-        self.assertEqual(force_text(instance),
-                         _(u'Start publish at %(start)s - End at %(end)s') %
-                         {'start': date_start, 'end': date_start + timedelta(seconds=10)})
-
-        plugin_data = {
-            'date_publish': date_start + timedelta(days=1)
-        }
-        plugin = add_plugin(ph, 'TimerContainerPlugin', language='en', **plugin_data)
-        instance, plugin_class = plugin.get_plugin_instance()
-        request = self.get_page_request(page1, self.user, r'/en/', lang='en')
-        context = RequestContext(request, {})
-        pl_context = plugin_class.render(context, instance, ph)
-        self.assertFalse('instance' in pl_context)
-
-        plugin_data = {
-            'date_publish': date_start - timedelta(days=1),
-            'date_publish_end': date_start - timedelta(seconds=10)
-        }
-        plugin = add_plugin(ph, 'TimerContainerPlugin', language='en', **plugin_data)
+        plugin = add_plugin(ph, 'ConditionalContainerPlugin', language='en', **plugin_data)
         instance, plugin_class = plugin.get_plugin_instance()
         request = self.get_page_request(page1, self.user, r'/en/', lang='en')
         context = RequestContext(request, {})
@@ -74,14 +63,13 @@ class TestPlugin(BaseTestCase):
     def test_children_shown(self):
         page1, = self.get_pages()
         ph = page1.placeholders.get(slot='content')
-        date_start = now()
 
         text_content = u"Child plugin"
 
         plugin_data = {
-            'date_publish': date_start
+            'permitted_group': self.group
         }
-        plugin_1 = add_plugin(ph, 'TimerContainerPlugin', language='en', **plugin_data)
+        plugin_1 = add_plugin(ph, 'ConditionalContainerPlugin', language='en', **plugin_data)
         plugin_1.save()
 
         # child of plugin_1
@@ -91,21 +79,22 @@ class TestPlugin(BaseTestCase):
         plugin_2.save()
 
         request = self.get_page_request(page1, self.user, r'/en/', lang='en')
+        renderer = ContentRenderer(request=request)
         context = RequestContext(request, {})
-        content = render_placeholder(ph, context)
+        context['user'] = self.user
+        content = renderer.render_plugin(plugin_1, context)
         self.assertEqual(content, text_content)
 
     def test_children_hidden(self):
         page1, = self.get_pages()
         ph = page1.placeholders.get(slot='content')
-        date_start = now()
 
         text_content = u"Child plugin"
 
         plugin_data = {
-            'date_publish': date_start + timedelta(days=1),
+            'permitted_group': self.group2
         }
-        plugin_1 = add_plugin(ph, 'TimerContainerPlugin', language='en', **plugin_data)
+        plugin_1 = add_plugin(ph, 'ConditionalContainerPlugin', language='en', **plugin_data)
         plugin_1.save()
 
         # child of plugin_1
@@ -115,6 +104,8 @@ class TestPlugin(BaseTestCase):
         plugin_2.save()
 
         request = self.get_page_request(page1, self.user, r'/en/', lang='en')
+        renderer = ContentRenderer(request=request)
         context = RequestContext(request, {})
-        content = render_placeholder(ph, context)
-        self.assertEqual(content, '')
+        context['user'] = self.user
+        content = renderer.render_plugin(plugin_1, context)
+        self.assertEqual(content, u'')

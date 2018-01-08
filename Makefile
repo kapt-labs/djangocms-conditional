@@ -23,18 +23,18 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 lint:
-	flake8 djangocms_timer
-	djangocms-helper djangocms_timer pyflakes --cms
+	flake8 djangocms_conditional
+	djangocms-helper djangocms_conditional pyflakes --cms
 
 test:
-	djangocms-helper djangocms_timer test --cms --nose
+	djangocms-helper djangocms_conditional test --cms --nose
 
 test-all:
 	tox
 
 coverage:
 	coverage erase
-	coverage run `which djangocms-helper` djangocms_timer test --cms --nose
+	coverage run `which djangocms-helper` djangocms_conditional test --cms --nose
 	coverage report -m
 
 release: clean

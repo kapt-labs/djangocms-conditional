@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = djangocms_timer
+source = djangocms_conditional
 
 [report]
 omit = ../*migrations*,../*tests*,../*compat.*

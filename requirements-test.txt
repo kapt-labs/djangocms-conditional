@@ -7,7 +7,7 @@ django-nose>=1.2
 flake8>=2.1.0
 tox>=1.8.0
 wheel
-djangocms-text-ckeditor
-https://github.com/nephila/djangocms-helper/archive/develop.zip
+djangocms-helper
 
 # Additional test requirements go here
+djangocms-text-ckeditor==3.5.1
