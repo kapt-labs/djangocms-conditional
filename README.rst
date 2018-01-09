@@ -2,14 +2,6 @@
 djangocms-conditional
 =====================
 
-.. image:: https://pypip.in/v/djangocms-conditional/badge.png
-        :target: https://pypi.python.org/pypi/djangocms-conditional
-        :alt: Latest PyPI version
-
-.. image:: https://pypip.in/d/djangocms-conditional/badge.png
-        :target: https://pypi.python.org/pypi/djangocms-conditional
-        :alt: Monthly downloads
-
 .. image:: https://travis-ci.org/rhooper/djangocms-conditional.png?branch=master
         :target: https://travis-ci.org/rhooper/djangocms-conditional
         :alt: Latest Travis CI build status
@@ -27,8 +19,6 @@ The full documentation is at https://djangocms-conditional.readthedocs.org
 
 Quickstart
 ----------
-
-
 
 1.  Install djangocms-conditional::
     pip install djangocms-conditional
