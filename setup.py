@@ -20,7 +20,7 @@ if sys.argv[-1] == 'publish':
     print("  git push --tags")
     sys.exit()
 if sys.argv[-1] == 'test':
-    os.system('pytest')
+    os.system('djangocms-helper djangocms_conditional test --cms --nose')
     sys.exit()
 
 readme = open('README.rst').read()
@@ -40,7 +40,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        'django-cms>=3.4'
+        'django-cms>=3.4',
     ],
     zip_safe=False,
     keywords='djangocms-conditional',
