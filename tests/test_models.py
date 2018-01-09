@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-from datetime import timedelta
 
 from django.contrib.auth.models import Group, User
 from django.template import RequestContext
-from django.test import Client
-from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
-from cms.api import add_plugin
+
+from cms.models import Placeholder
 from cms.plugin_rendering import ContentRenderer
 from djangocms_helper.base_test import BaseTestCase
+
+from djangocms_conditional.cms_plugins import ConditionalContainerPlugin
 
 
 class TestPlugin(BaseTestCase):
@@ -24,7 +23,6 @@ class TestPlugin(BaseTestCase):
         self.group.save()
         self.group2 = Group(name="My Test Group 2")
         self.group2.save()
-        self.c = Client()
         self.user = User.objects.create_user(username="test", email="test@test.com", password="test")
         self.user.groups.add(self.group)
         self.user.save()
@@ -33,79 +31,79 @@ class TestPlugin(BaseTestCase):
         self.user.delete()
         self.group.delete()
 
-    def test_basic_context_setup(self):
-        page1, = self.get_pages()
-        ph = page1.placeholders.get(slot='content')
-
-        plugin_data = {
-            'permitted_group': self.group
-        }
-        plugin = add_plugin(ph, 'ConditionalContainerPlugin', language='en', **plugin_data)
-        instance, plugin_class = plugin.get_plugin_instance()
-        request = self.get_page_request(page1, self.user, r'/en/', lang='en')
-        context = RequestContext(request, {})
-        pl_context = plugin_class.render(context, instance, ph)
-        self.assertTrue('instance' in pl_context)
-        self.assertEqual(pl_context['instance'], instance)
-        self.assertEqual(force_text(instance),
-                         _(u'Access granted to %s') % self.group.name)
-
-        plugin_data = {
-            'permitted_group': self.group2
-        }
-        plugin = add_plugin(ph, 'ConditionalContainerPlugin', language='en', **plugin_data)
-        instance, plugin_class = plugin.get_plugin_instance()
-        request = self.get_page_request(page1, self.user, r'/en/', lang='en')
-        context = RequestContext(request, {})
-        pl_context = plugin_class.render(context, instance, ph)
-        self.assertFalse('instance' in pl_context)
+    def test_plugin_context(self):
+        from cms.api import add_plugin
+        placeholder = Placeholder.objects.create(slot='content')
+        model_instance = add_plugin(
+            placeholder,
+            ConditionalContainerPlugin,
+            'en',
+            permitted_group=self.group
+        )
+        plugin_instance = model_instance.get_plugin_class_instance()
+        context = plugin_instance.render({}, model_instance, None)
+        self.assertNotIn('instance', context)
+        context = plugin_instance.render({"user": self.user}, model_instance, None)
+        self.assertIn('instance', context)
 
     def test_children_shown(self):
+        from cms.api import add_plugin, create_page
+
         page1, = self.get_pages()
-        ph = page1.placeholders.get(slot='content')
+        placeholder = page1.placeholders.get(slot='content')
+        parent_plugin = add_plugin(
+            placeholder,
+            ConditionalContainerPlugin,
+            u'en',
+            permitted_group=self.group
+        )
+        parent_plugin.save()
 
         text_content = u"Child plugin"
+        text_plugin = add_plugin(placeholder, u"TextPlugin", u"en", body=text_content, target=parent_plugin,)
+        text_plugin.save()
 
-        plugin_data = {
-            'permitted_group': self.group
-        }
-        plugin_1 = add_plugin(ph, 'ConditionalContainerPlugin', language='en', **plugin_data)
-        plugin_1.save()
-
-        # child of plugin_1
-        plugin_2 = add_plugin(ph, u"TextPlugin", u"en", body=text_content)
-        plugin_1 = self.reload_model(plugin_1)
-        plugin_2.parent = plugin_1
-        plugin_2.save()
+        parent_plugin.child_plugin_instances = [text_plugin]
 
         request = self.get_page_request(page1, self.user, r'/en/', lang='en')
         renderer = ContentRenderer(request=request)
-        context = RequestContext(request, {})
-        context['user'] = self.user
-        content = renderer.render_plugin(plugin_1, context)
-        self.assertEqual(content, text_content)
+        context = RequestContext(request, {
+            "user": self.user,
+            "cms_content_renderer": renderer})
 
-    def test_children_hidden(self):
+        child_html = renderer.render_plugin(text_plugin, context)
+        parent_html = renderer.render_plugin(parent_plugin, context)
+
+        self.assertEqual(child_html, text_content)
+        self.assertEqual(parent_html, text_content)
+
+    def test_children_not_shown(self):
+        from cms.api import add_plugin, create_page
+
         page1, = self.get_pages()
-        ph = page1.placeholders.get(slot='content')
+        placeholder = page1.placeholders.get(slot='content')
+        parent_plugin = add_plugin(
+            placeholder,
+            ConditionalContainerPlugin,
+            u'en',
+            permitted_group=self.group2
+        )
+        parent_plugin.save()
 
         text_content = u"Child plugin"
+        text_plugin = add_plugin(placeholder, u"TextPlugin", u"en", body=text_content, target=parent_plugin,)
+        text_plugin.save()
 
-        plugin_data = {
-            'permitted_group': self.group2
-        }
-        plugin_1 = add_plugin(ph, 'ConditionalContainerPlugin', language='en', **plugin_data)
-        plugin_1.save()
-
-        # child of plugin_1
-        plugin_2 = add_plugin(ph, u"TextPlugin", u"en", body=text_content)
-        plugin_1 = self.reload_model(plugin_1)
-        plugin_2.parent = plugin_1
-        plugin_2.save()
+        parent_plugin.child_plugin_instances = [text_plugin]
 
         request = self.get_page_request(page1, self.user, r'/en/', lang='en')
         renderer = ContentRenderer(request=request)
-        context = RequestContext(request, {})
-        context['user'] = self.user
-        content = renderer.render_plugin(plugin_1, context)
-        self.assertEqual(content, u'')
+        context = RequestContext(request, {
+            "user": self.user,
+            "cms_content_renderer": renderer})
+
+        child_html = renderer.render_plugin(text_plugin, context)
+        parent_html = renderer.render_plugin(parent_plugin, context)
+
+        self.assertEqual(child_html, text_content)
+        self.assertEqual(parent_html, '')

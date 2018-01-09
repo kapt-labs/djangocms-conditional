@@ -13,4 +13,4 @@ class ConditionalPluginModel(CMSPlugin):
     permitted_group = models.ForeignKey(Group, null=False, blank=False)
 
     def __str__(self):
-        return _(u'Access granted to %s') % self.permitted_group.name
+        return _(u'Access granted to members of %s') % self.permitted_group.name
