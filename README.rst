@@ -10,8 +10,20 @@ djangocms-conditional
         :target: https://pypi.python.org/pypi/djangocms-conditional
         :alt: Monthly downloads
 
-django CMS plugin that shows content between specified times
+.. image:: https://travis-ci.org/rhooper/djangocms-conditional.png?branch=master
+        :target: https://travis-ci.org/rhooper/djangocms-conditional
+        :alt: Latest Travis CI build status
 
+.. image:: https://coveralls.io/repos/rhooper/djangocms-conditional/badge.png
+        :target: https://coveralls.io/r/rhooper/djangocms-conditional
+        :alt: Test coverage
+
+Django CMS plugin that shows content if a user is logged in and a member of a specific Django group.
+
+Documentation
+-------------
+
+The full documentation is at https://djangocms-conditional.readthedocs.org
 
 Quickstart
 ----------
