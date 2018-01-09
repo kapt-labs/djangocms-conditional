@@ -1,6 +1,6 @@
-===============
+=====================
 djangocms-conditional
-===============
+=====================
 
 .. image:: https://pypip.in/v/djangocms-conditional/badge.png
         :target: https://pypi.python.org/pypi/djangocms-conditional
@@ -28,10 +28,10 @@ The full documentation is at https://djangocms-conditional.readthedocs.org
 Quickstart
 ----------
 
-Install djangocms-conditional::
 
-1.  pip install djangocms-conditional
 
+1.  Install djangocms-conditional::
+    pip install djangocms-conditional
 
 2. Add "djangocms_conditional" to your INSTALLED_APPS setting like this::
 
