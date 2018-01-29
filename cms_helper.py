@@ -8,6 +8,9 @@ HELPER_SETTINGS = {
         '-s',
     ],
     'INSTALLED_APPS': [
+        # 'cms',
+        # 'treebeard',
+        # 'menus',  # helper for model independent hierarchical website navigation
         'djangocms_text_ckeditor',
     ],
     'LANGUAGE_CODE': 'en',
