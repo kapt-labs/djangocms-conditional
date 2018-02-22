@@ -207,3 +207,35 @@ class TestPlugin(BaseTestCase):
 
         self.assertEqual(child_html, text_content)
         self.assertEqual(parent_html, text_content)
+
+    def test_anon_mode_anon(self):
+        page1, text_plugin, parent_plugin, text_content = self.setup_plugin(group=self.group,
+                                                                            mode='anonymous')
+
+        request = self.get_page_request(page1, AnonymousUser(), r'/en/', lang='en')
+        renderer = ContentRenderer(request=request)
+        context = RequestContext(request, {
+            "user": AnonymousUser(),
+            "cms_content_renderer": renderer})
+
+        child_html = renderer.render_plugin(text_plugin, context)
+        parent_html = renderer.render_plugin(parent_plugin, context)
+
+        self.assertEqual(child_html, text_content)
+        self.assertEqual(parent_html, text_content)
+
+    def test_anon_mode_registered(self):
+        page1, text_plugin, parent_plugin, text_content = self.setup_plugin(group=self.group,
+                                                                            mode='anonymous')
+
+        request = self.get_page_request(page1, self.user, r'/en/', lang='en')
+        renderer = ContentRenderer(request=request)
+        context = RequestContext(request, {
+            "user": self.user,
+            "cms_content_renderer": renderer})
+
+        child_html = renderer.render_plugin(text_plugin, context)
+        parent_html = renderer.render_plugin(parent_plugin, context)
+
+        self.assertEqual(child_html, text_content)
+        self.assertEqual(parent_html, '')

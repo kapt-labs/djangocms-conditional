@@ -10,6 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 MODE_IN_GROUP = 'in_group'
 MODE_NOT_IN_GROUP = 'not_in_group'
 MODE_NOT_IN_GROUP_PLUS_ANON = 'not_in_group_plus_anon'
+MODE_ANONYMOUS = 'anonymous'
+
 
 @python_2_unicode_compatible
 class ConditionalPluginModel(CMSPlugin):
@@ -20,8 +22,9 @@ class ConditionalPluginModel(CMSPlugin):
                             help_text=_(u"Conditional access type"),
                             choices=((MODE_IN_GROUP, _(u'Users in group')),
                                      (MODE_NOT_IN_GROUP, _(u'Users not in group')),
-                                     (MODE_NOT_IN_GROUP_PLUS_ANON, 'Anonymous users and users not in group'),
-                            ))
+                                     (MODE_NOT_IN_GROUP_PLUS_ANON, _('Anonymous users and users not in group')),
+                                     (MODE_ANONYMOUS, _('Anonymous users')),
+                                     ))
 
     def __str__(self):
         return _(u'Conditional access %s group="%s"') % (

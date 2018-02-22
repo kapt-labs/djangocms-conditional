@@ -4,7 +4,8 @@ from cms.plugin_pool import plugin_pool
 from django.contrib.auth.models import User, AnonymousUser
 from django.utils.translation import ugettext_lazy as _
 
-from .models import ConditionalPluginModel, MODE_IN_GROUP, MODE_NOT_IN_GROUP, MODE_NOT_IN_GROUP_PLUS_ANON
+from .models import ConditionalPluginModel, MODE_IN_GROUP, MODE_NOT_IN_GROUP, MODE_NOT_IN_GROUP_PLUS_ANON, \
+    MODE_ANONYMOUS
 
 
 class ConditionalContainerPlugin(CMSPluginBase):
@@ -31,6 +32,9 @@ class ConditionalContainerPlugin(CMSPluginBase):
                 context['instance'] = instance
         elif instance.mode == MODE_NOT_IN_GROUP:
             if not (user.is_anonymous() or user.groups.filter(id=instance.permitted_group.id).exists()):
+                context['instance'] = instance
+        elif instance.mode == MODE_ANONYMOUS:
+            if user.is_anonymous():
                 context['instance'] = instance
         elif instance.mode == MODE_NOT_IN_GROUP_PLUS_ANON:
             if user.is_anonymous() or not user.groups.filter(id=instance.permitted_group.id).exists():
