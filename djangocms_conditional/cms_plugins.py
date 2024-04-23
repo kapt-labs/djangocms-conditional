@@ -6,11 +6,13 @@ from django.utils.translation import gettext_lazy as _
 
 from .models import ConditionalPluginModel, MODE_IN_GROUP, MODE_NOT_IN_GROUP, MODE_NOT_IN_GROUP_PLUS_ANON, \
     MODE_ANONYMOUS
+from .forms import ConditionalPluginForm
 
 
 class ConditionalContainerPlugin(CMSPluginBase):
     name = _('Conditional content')
     model = ConditionalPluginModel
+    form = ConditionalPluginForm
     allow_children = True
     cache = False
     render_template = 'djangocms_conditional/conditional.html'

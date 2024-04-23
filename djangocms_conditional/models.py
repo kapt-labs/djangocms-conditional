@@ -13,7 +13,7 @@ MODE_ANONYMOUS = 'anonymous'
 
 class ConditionalPluginModel(CMSPlugin):
 
-    permitted_group = models.ForeignKey(Group, null=False, blank=False, on_delete=models.CASCADE)
+    permitted_group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
     mode = models.CharField(max_length=40,
                             default='in_group',
                             help_text=_("Conditional access type"),
@@ -24,7 +24,10 @@ class ConditionalPluginModel(CMSPlugin):
                                      ))
 
     def __str__(self):
-        return _('Conditional access %s group="%s"') % (
-            self.mode,
-            self.permitted_group.name,
-        )
+        if self.permitted_group is not None:
+            return _('%s: %s') % (
+                self.get_mode_display(),
+                self.permitted_group.name,
+            )
+        else:
+            return self.get_mode_display()
