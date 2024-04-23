@@ -31,13 +31,13 @@ class ConditionalContainerPlugin(CMSPluginBase):
             if user.groups.filter(id=instance.permitted_group.id).exists():
                 context['instance'] = instance
         elif instance.mode == MODE_NOT_IN_GROUP:
-            if not (user.is_anonymous() or user.groups.filter(id=instance.permitted_group.id).exists()):
+            if not (user.is_anonymous or user.groups.filter(id=instance.permitted_group.id).exists()):
                 context['instance'] = instance
         elif instance.mode == MODE_ANONYMOUS:
-            if user.is_anonymous():
+            if user.is_anonymous:
                 context['instance'] = instance
         elif instance.mode == MODE_NOT_IN_GROUP_PLUS_ANON:
-            if user.is_anonymous() or not user.groups.filter(id=instance.permitted_group.id).exists():
+            if user.is_anonymous or not user.groups.filter(id=instance.permitted_group.id).exists():
                 context['instance'] = instance
 
         return context
