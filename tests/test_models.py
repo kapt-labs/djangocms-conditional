@@ -24,14 +24,14 @@ class TestPlugin(BaseTestCase):
         parent_plugin = add_plugin(
             placeholder,
             ConditionalContainerPlugin,
-            u'en',
+            'en',
             permitted_group=group,
             mode=mode
         )
         parent_plugin.save()
 
-        text_content = u"Child plugin"
-        text_plugin = add_plugin(placeholder, u"TextPlugin", u"en", body=text_content, target=parent_plugin,)
+        text_content = "Child plugin"
+        text_plugin = add_plugin(placeholder, "TextPlugin", "en", body=text_content, target=parent_plugin,)
         text_plugin.save()
 
         parent_plugin.child_plugin_instances = [text_plugin]

@@ -2,14 +2,14 @@
 from cms.plugin_base import CMSPluginBase
 from cms.plugin_pool import plugin_pool
 from django.contrib.auth.models import User, AnonymousUser
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from .models import ConditionalPluginModel, MODE_IN_GROUP, MODE_NOT_IN_GROUP, MODE_NOT_IN_GROUP_PLUS_ANON, \
     MODE_ANONYMOUS
 
 
 class ConditionalContainerPlugin(CMSPluginBase):
-    name = _(u'Conditional content')
+    name = _('Conditional content')
     model = ConditionalPluginModel
     allow_children = True
     cache = False
