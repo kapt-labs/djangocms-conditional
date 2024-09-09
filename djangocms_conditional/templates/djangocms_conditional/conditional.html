@@ -1,5 +1,5 @@
 {% load cms_tags %}{% spaceless %}
-{% if conditional_config %}
+{% if user_matches_condition %}
 {% for plugin in conditional_config.child_plugin_instances %}
 	{% with forloop as parentloop %}{% render_plugin plugin %}{% endwith %}
 {% endfor %}

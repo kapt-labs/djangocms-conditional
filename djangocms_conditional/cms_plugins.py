@@ -28,21 +28,21 @@ class ConditionalContainerPlugin(CMSPluginBase):
         if not user:
             user = AnonymousUser()  # Should never happen
 
+        context['conditional_config'] = instance
+
         # This could be coded more efficiently, but is this way for clarity
-        if user.is_superuser:
-            context['conditional_config'] = instance
-        elif instance.mode == MODE_IN_GROUP:
+        if instance.mode == MODE_IN_GROUP:
             if user.groups.filter(id=instance.permitted_group.id).exists():
-                context['conditional_config'] = instance
+                context['user_matches_condition'] = True
         elif instance.mode == MODE_NOT_IN_GROUP:
             if not (user.is_anonymous or user.groups.filter(id=instance.permitted_group.id).exists()):
-                context['conditional_config'] = instance
+                context['user_matches_condition'] = True
         elif instance.mode == MODE_ANONYMOUS:
             if user.is_anonymous:
-                context['conditional_config'] = instance
+                context['user_matches_condition'] = True
         elif instance.mode == MODE_NOT_IN_GROUP_PLUS_ANON:
             if user.is_anonymous or not user.groups.filter(id=instance.permitted_group.id).exists():
-                context['conditional_config'] = instance
+                context['user_matches_condition'] = True
 
         return context
 
